@@ -11,7 +11,7 @@
 -Presentación en Pptx
 
 ## Enlaces importantes
--[PDF guía del trabajo](https://github.com/FernandoC1217/Juego_Trivia_ProyectoN2/tree/master/PDF)
+-[PDF guía del trabajo](https://github.com/FernandoC1217/Proyecto_Semestral/blob/master/Proyecto%20Final%20Restaurante.pdf)
 
 ## Los autores del proyecto
 1. [Fernando Cutire](https://github.com/FernandoC1217)
