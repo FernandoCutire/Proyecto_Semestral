@@ -10,7 +10,7 @@ class Restaurante {
 	int modificar, espacio = 0;
 	double precioPlatillo;
 	String nombrePlatillo;
-	char oferta;
+	char oferta, configurarOferta = 's';
 	//Variables para administrar los meseros
 	String nombresMeseros[] = new String[3];
 	double ventasMeseros[] = new double[3];
@@ -18,10 +18,11 @@ class Restaurante {
 	char reemplazar;
 	//Variables para atencion de clientes
 	char atender = 's', producto, jubilado;
-	double totalCliente;
 	int pedido, cantPedido, orden;
 	int codigoPlatillo[] = new int[15];
 	int cantidadPlatillo[] = new int[15];
+	//Variables para generar la factura
+	double totalCliente, descuentoJubi = 0;
 
 
 	public void ImprimirMenuPrincipal(){
@@ -93,11 +94,13 @@ class Restaurante {
 		switch (opcionConfiguracion) {
 			case 1:
 				if (espacio < 7) {
-					System.out.print("\nIngrese el nombre del platillo: ");
+					System.out.print("Ingrese el nombre del platillo: ");
 					nombrePlatillo = sc.next();
+					sc.nextLine();
 					System.out.print("Ingrese el precio del platillo: ");
 					precioPlatillo = sc.nextDouble();
-					comida[espacio] = new Platillo(nombrePlatillo, precioPlatillo);
+					oferta = 'n';
+					comida[espacio] = new Platillo(nombrePlatillo, precioPlatillo, oferta);
 					espacio++;
 				}
 				else{
@@ -113,7 +116,7 @@ class Restaurante {
 				nombrePlatillo = sc.next();
 				System.out.print("Ingrese el precio del platillo: ");
 				precioPlatillo = sc.nextDouble();
-				comida[modificar] = new Platillo(nombrePlatillo, precioPlatillo);
+				comida[modificar] = new Platillo(nombrePlatillo, precioPlatillo, oferta);
 				break;
 			case 3:
 				// MostrarPreguntas();
@@ -165,25 +168,38 @@ class Restaurante {
 		System.out.print("Ingrese su opción: ");
 		opcionSemana = sc.nextInt();
 	}
+
+	public void DefinirPlatilloOferta() {
+		ImprimirMenu();
+		System.out.print("Ingrese el código del platillo en oferta (-30%): ");
+		modificar = sc.nextInt();
+		comida[modificar].setOferta(configurarOferta);
+	}
 	
 	public void EvaluarOpcionSemana() {
 		switch (opcionSemana) {
 			case 1:
+				atender = 's';
+				DefinirPlatilloOferta();
 				while(atender == 's'){
 					ImprimirMenu();
 					producto = 's';
 					totalCliente = 0;
 					orden = 0;
+					descuentoJubi = 0;
 					System.out.print("Jubilado (s/n): ");
 					jubilado = sc.next().charAt(0);
 					while(producto == 's' || producto == 'S') {
+						try{
 						System.out.print("\nCódigo del platillo: ");
 						codigoPlatillo[orden] = sc.nextInt();
 						System.out.print("Cantidad del platillo: ");
-						cantidadPedido[orden] = sc.nextInt();
+						cantidadPlatillo[orden] = sc.nextInt();
 						System.out.print("¿Añadirá otro producto? s/n: ");
 						producto = sc.next().charAt(0);
 						orden++;
+						}
+						catch(NullPointerException e){}
 					}
 					GenerarFactura();
 					System.out.print("¿Atender otro cliente? s/n: ");
@@ -195,7 +211,43 @@ class Restaurante {
 				break;
 		}	
 	}
+	public void CalcularTotalCliente(){
+		for (int i : codigoPlatillo) {
+			if(comida[codigoPlatillo[i]].getOferta() == 's' && jubilado == 's') {
+				totalCliente = totalCliente + (comida[codigoPlatillo[i]].getPrecio() * cantidadPlatillo[i] * 0.65);
+			}
+			else if(comida[codigoPlatillo[i]].getOferta() == 's' && jubilado != 's') {
+				totalCliente = totalCliente + (comida[codigoPlatillo[i]].getPrecio() * cantidadPlatillo[i] * 0.65);
+			}
+			else if(comida[codigoPlatillo[i]].getOferta() != 's' && jubilado == 's') {
+				totalCliente = totalCliente + (comida[codigoPlatillo[i]].getPrecio() * cantidadPlatillo[i] * 0.70);
+				descuentoJubi = descuentoJubi + (comida[codigoPlatillo[i]].getPrecio() * cantidadPlatillo[i] * 0.70);
+			}
+			else{
+				totalCliente = totalCliente + (comida[codigoPlatillo[i]].getPrecio() * cantidadPlatillo[i]);
+			}
+		}
 
+	}
+
+	public void GenerarFactura() {
+		CalcularTotalCliente();
+		int i = 0;
+		System.out.println("\n     FACTURA - RESTAURANTE");
+		System.out.println("Cantidad     Precio      Platillo");
+		while(i < orden) {
+			try{
+				System.out.printf("%d       %.2f          %s\n", cantidadPlatillo[i], comida[codigoPlatillo[i]].getPrecio(), 
+						comida[codigoPlatillo[i]].getNombre());
+				i++;
+			}
+			catch(NullPointerException a){}
+		}
+		if (jubilado == 's' || jubilado == 'S') {
+			System.out.printf("DESCUENTO(-30%%): %.2f dólares\n", descuentoJubi);
+		}
+		System.out.printf("TOTAL: %.2f dólares \n\n", totalCliente);
+	}
 
 	// METODOS DE IMPRESIONES
 	public void ImprimirMeseros(){
